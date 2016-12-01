@@ -8,108 +8,225 @@ public class GildedRoseTest {
 
 
     @Test
-    public void testQualityDecreasesAfterOneDay() {
+    public void updateQualityWorksWithoutItems() {
         // Arrange
-        Item[] items = new Item[]{new Item("foo", 1, 1)};
-        GildedRose app = new GildedRose(items);
+        GildedRose app = new GildedRose(withNoItems());
 
         // Act
         app.updateQuality();
 
         // Assert
-        assertEquals(0, items[0].sellIn);
-        assertEquals(0, items[0].quality);
+        assertTrue(true);
     }
 
     @Test
-    public void testSellByDateHasPassedTheQualityDegradesTwiceAsFast() {
-        //Once the sell by date has passed, Quality degrades twice as fast
-        Item[] items = new Item[]{new Item("foo", 0, 4)};
-        GildedRose app = new GildedRose(items);
+    public void updateQualityDecreasesSellIn() {
+        // Arrange
+        GildedRose app = new GildedRose(withDefaultItem(1, 0));
+
+        // Act
         app.updateQuality();
-        assertEquals(-1, items[0].sellIn);
-        assertEquals(2, items[0].quality);
+
+        // Assert
+        assertEquals(0, app.items[0].sellIn);
     }
 
     @Test
-    public void testTheQualityOfAnItemIsNeverNegative() {
-        Item[] items = new Item[]{new Item("foo", 0, 0)};
-        GildedRose app = new GildedRose(items);
+    public void updateQualityDecreasesQuality() {
+        // Arrange
+        GildedRose app = new GildedRose(withDefaultItem(0, 1));
+
+        // Act
         app.updateQuality();
-        assertEquals(0, items[0].quality);
+
+        // Assert
+        assertEquals(0, app.items[0].quality);
     }
 
     @Test
-    public void testAgedBrieActuallyIncreasesInQualityTheOlderItGets() {
-        Item[] items = new Item[]{new Item("Aged Brie", 1, 0)};
-        GildedRose app = new GildedRose(items);
+    public void updateQualityDecreasesQualityByTwoIfSellInIsZero() {
+        // Arrange
+        GildedRose app = new GildedRose(withDefaultItem(0, 8));
+
+        // Act
         app.updateQuality();
-        assertEquals(0, items[0].sellIn);
-        assertEquals(1, items[0].quality);
+
+        // Assert
+        assertEquals(6, app.items[0].quality);
     }
 
     @Test
-    public void testAgedBrieAfterSellInIncreaseQualityByTwo() {
-        Item[] items = new Item[]{new Item("Aged Brie", -1, 0)};
-        GildedRose app = new GildedRose(items);
+    public void updateQualityNeverDecreasesQualityBelowZero() {
+        // Arrange
+        GildedRose app = new GildedRose(withDefaultItem(0, 0));
+
+        // Act
         app.updateQuality();
-        assertEquals(-2, items[0].sellIn);
-        assertEquals(2, items[0].quality);
+
+        // Assert
+        assertEquals(0, app.items[0].quality);
     }
 
     @Test
-    public void testTheQualityOfAnItemIsNeverMoreThan50() {
-        Item[] items = new Item[]{new Item("Aged Brie", 1, 50)};
-        GildedRose app = new GildedRose(items);
+    public void agedBrieGainsQualityByAge() {
+        // Arrange
+        GildedRose app = new GildedRose(withAgedBrieItem(1, 0));
+
+        // Act
         app.updateQuality();
-        assertEquals(50, items[0].quality);
+
+        // Assert
+        assertEquals(1, app.items[0].quality);
     }
 
     @Test
-    public void testSulfurasNeverHasToBeSoldOrDecreasesInQuality() {
-        Item[] items = new Item[]{new Item("Sulfuras, Hand of Ragnaros", 1, 1)};
-        GildedRose app = new GildedRose(items);
+    public void agedBrieGainsTwoQualityAfterSellIn() {
+        // Arrange
+        GildedRose app = new GildedRose(withAgedBrieItem(-1, 48));
+
+        // Act
         app.updateQuality();
-        assertEquals(1, items[0].sellIn);
-        assertEquals(1, items[0].quality);
+
+        // Assert
+        assertEquals(50, app.items[0].quality);
     }
 
     @Test
-    public void testBackStagePass() {
-        // "Backstage passes", like aged brie, increases in Quality as its SellIn value approaches;
-        // Quality increases by 2 when there are 10 days or less and by 3 when there are 5 days or less but
-        // Quality drops to 0 after the concert
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 11, 1)};
-        GildedRose app = new GildedRose(items);
-        app.updateQuality();
-        assertEquals(2, items[0].quality);
+    public void anAgedBriesQualityIsNeverMoreThanFifty() {
+        // Arrange
+        GildedRose app = new GildedRose(withAgedBrieItem(1, 50));
 
+        // Act
         app.updateQuality();
-        assertEquals(4, items[0].quality);
 
-        items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 6, 1)};
-        app = new GildedRose(items);
-        app.updateQuality();
-        assertEquals(3, items[0].quality);
+        // Assert
+        assertEquals(50, app.items[0].quality);
+    }
 
-        items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 5, 1)};
-        app = new GildedRose(items);
-        app.updateQuality();
-        assertEquals(4, items[0].quality);
+    @Test
+    public void anAgedBriesQualityInitializedToMoreThanFiftyKeepsTheQuality() {
+        // Arrange
+        GildedRose app = new GildedRose(withAgedBrieItem(1, 51));
 
-        items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 4, 1)};
-        app = new GildedRose(items);
+        // Act
         app.updateQuality();
-        assertEquals(4, items[0].quality);
 
-        items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 1, 1)};
-        app = new GildedRose(items);
-        app.updateQuality();
-        assertEquals(4, items[0].quality);
+        // Assert
+        assertEquals(51, app.items[0].quality);
+    }
 
-        items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 0, 1)};
-        app = new GildedRose(items);
+    @Test
+    public void aDefaultItemsInitalizedWithQualityOverFiftyDecreasesNormally() {
+        // Arrange
+        GildedRose app = new GildedRose(withDefaultItem(1, 52));
+
+        // Act
         app.updateQuality();
-        assertEquals(0, items[0].quality);
+
+        // Assert
+        assertEquals(51, app.items[0].quality);
+    }
+
+    @Test
+    public void sulfurasQualityAndSellInNeverChange() {
+        // Arrange
+        GildedRose app = new GildedRose(withSulfurasItem(1, 2));
+
+        // Act
+        app.updateQuality();
+
+        // Assert
+        assertSellInAndQuality(app.items[0], 1, 2);
+    }
+
+    @Test
+    public void sulfurasKeepsNegativeProperties() {
+        // Arrange
+        GildedRose app = new GildedRose(withSulfurasItem(-1, -2));
+
+        // Act
+        app.updateQuality();
+
+        // Assert
+        assertSellInAndQuality(app.items[0], -1, -2);
+    }
+
+    @Test
+    public void backStagePassesIncreaseInValue() {
+        // Arrange
+        GildedRose app = new GildedRose(withBackstageItem(20, 5));
+
+        // Act
+        app.updateQuality();
+
+        // Assert
+        assertEquals(6, app.items[0].quality);
+    }
+
+    @Test
+    public void backStagePassesIncreaseInValueByTwoIf10DaysOrLessLeft() {
+        // Arrange
+        GildedRose app = new GildedRose(withBackstageItem(10, 5));
+
+        // Act
+        app.updateQuality();
+
+        // Assert
+        assertEquals(7, app.items[0].quality);
+    }
+
+    @Test
+    public void backStagePassesIncreaseInValueByThreeIf5DaysOrLessLeft() {
+        // Arrange
+        GildedRose app = new GildedRose(withBackstageItem(5, 5));
+
+        // Act
+        app.updateQuality();
+
+        // Assert
+        assertEquals(8, app.items[0].quality);
+    }
+
+    @Test
+    public void backStagePassesDropsToZeroAfterTheConcert() {
+        // Arrange
+        GildedRose app = new GildedRose(withBackstageItem(0, 5));
+
+        // Act
+        app.updateQuality();
+
+        // Assert
+        assertEquals(0, app.items[0].quality);
+    }
+
+    private Item[] withNoItems() {
+
+        return new Item[] {};
+    }
+
+    private Item[] withDefaultItem(int sellIn, int quality)    {
+        return withItem("foo", sellIn, quality);
+    }
+
+    private Item[] withAgedBrieItem(int sellIn, int quality)    {
+        return withItem("Aged Brie", sellIn, quality);
+    }
+
+    private Item[] withBackstageItem(int sellIn, int quality)    {
+        return withItem("Backstage passes to a TAFKAL80ETC concert", sellIn, quality);
+    }
+
+    private Item[] withSulfurasItem(int sellIn, int quality)    {
+        return withItem("Sulfuras, Hand of Ragnaros", sellIn, quality);
+    }
+
+    private Item[] withItem(String name, int sellIn, int quality)    {
+        return new Item[] {new Item(name, sellIn, quality)};
+    }
+
+    private void assertSellInAndQuality(final Item item, final int expectedSellIn, final int expectedQuality) {
+
+        assertEquals(expectedSellIn, item.sellIn);
+        assertEquals(expectedQuality, item.quality);
     }
 }
